@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { VehiclesService } from './vehicles.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
@@ -7,28 +15,36 @@ import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 export class VehiclesController {
   constructor(private readonly vehiclesService: VehiclesService) {}
 
+  // Create a new vehicle
   @Post()
-  create(@Body() createVehicleDto: CreateVehicleDto) {
+  async create(@Body() createVehicleDto: CreateVehicleDto) {
     return this.vehiclesService.create(createVehicleDto);
   }
 
+  // Retrieve all vehicles
   @Get()
-  findAll() {
+  async findAll() {
     return this.vehiclesService.findAll();
   }
 
+  // Retrieve a single vehicle by ID
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.vehiclesService.findOne(+id);
+  async findOne(@Param('id') id: number) {
+    return this.vehiclesService.findOne(id); // Remove the `+` to avoid coercion if `id` is a string
   }
 
+  // Update a vehicle by ID
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateVehicleDto: UpdateVehicleDto) {
-    return this.vehiclesService.update(+id, updateVehicleDto);
+  async update(
+    @Param('id') id: number,
+    @Body() updateVehicleDto: UpdateVehicleDto,
+  ) {
+    return this.vehiclesService.update(id, updateVehicleDto);
   }
 
+  // Remove a vehicle by ID
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.vehiclesService.remove(+id);
+  async remove(@Param('id') id: number) {
+    return this.vehiclesService.remove(id);
   }
 }
