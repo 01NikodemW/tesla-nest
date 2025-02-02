@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { VehicleImage } from './vehicle-image.entity';
 
 @Entity()
 export class Vehicle {
@@ -25,4 +26,13 @@ export class Vehicle {
     example: 50,
   })
   rentalPricePerDay: number;
+
+  @OneToMany(() => VehicleImage, (vehicleImage) => vehicleImage.vehicle, {
+    cascade: true,
+  })
+  @ApiProperty({
+    description: 'List of vehicle images',
+    type: () => [VehicleImage],
+  }) // ✅ FIX: Lazy resolver
+  images: VehicleImage[];
 }
