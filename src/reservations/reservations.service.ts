@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Inject,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, LessThanOrEqual } from 'typeorm';
@@ -13,6 +14,7 @@ import { User } from '../users/entities/user.entity';
 import * as dayjs from 'dayjs';
 import { PaginationDto } from 'src/common/pagination/pagination.dto';
 import { PaginationService } from 'src/common/pagination/pagination.service';
+import { LoggerService } from 'src/logger/logger.service';
 
 @Injectable()
 export class ReservationsService {
@@ -24,22 +26,34 @@ export class ReservationsService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly paginationService: PaginationService,
+    private readonly loggerService: LoggerService,
   ) {}
 
   async create(
     createReservationDto: CreateReservationDto,
   ): Promise<Reservation> {
+    this.loggerService.log(
+      `Creating reservation: ${JSON.stringify(createReservationDto)}`,
+    );
+
     const { userId, vehicleId, rentalDate, returnDate } = createReservationDto;
 
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) {
+      this.loggerService.warn(`User with ID ${userId} not found`);
+      throw new NotFoundException('User not found');
+    }
 
     const vehicle = await this.vehicleRepository.findOne({
       where: { id: vehicleId },
     });
-    if (!vehicle) throw new NotFoundException('Vehicle not found');
+    if (!vehicle) {
+      this.loggerService.warn(`Vehicle with ID ${vehicleId} not found`);
+      throw new NotFoundException('Vehicle not found');
+    }
 
     if (dayjs(rentalDate).isAfter(returnDate)) {
+      this.loggerService.warn('Invalid rental period');
       throw new BadRequestException(
         'Rental date must be before or the same as return date',
       );
@@ -53,6 +67,9 @@ export class ReservationsService {
     });
 
     if (existingReservation) {
+      this.loggerService.warn(
+        `Vehicle ${vehicleId} is already reserved from ${existingReservation.rentalDate} to ${existingReservation.returnDate}`,
+      );
       throw new BadRequestException(
         `This vehicle is already reserved from ${existingReservation.rentalDate} to ${existingReservation.returnDate}`,
       );
@@ -69,30 +86,48 @@ export class ReservationsService {
       totalPrice,
     });
 
-    return this.reservationRepository.save(reservation);
+    const savedReservation = await this.reservationRepository.save(reservation);
+    this.loggerService.log(
+      `Reservation created with ID: ${savedReservation.id}`,
+    );
+
+    return savedReservation;
   }
 
   async findAll(paginationDto: PaginationDto) {
+    this.loggerService.log(
+      `Fetching all reservations with pagination: ${JSON.stringify(paginationDto)}`,
+    );
+
     const queryBuilder = this.reservationRepository
       .createQueryBuilder('reservation')
       .leftJoinAndSelect('reservation.user', 'user')
       .leftJoinAndSelect('reservation.vehicle', 'vehicle');
 
-    return this.paginationService.paginate(
+    const result = await this.paginationService.paginate(
       queryBuilder,
       paginationDto,
       'reservation',
     );
+
+    this.loggerService.log(`Fetched ${result.data.length} reservations`);
+    return result;
   }
 
   async findOne(id: number): Promise<Reservation> {
+    this.loggerService.log(`Fetching reservation with ID: ${id}`);
+
     const reservation = await this.reservationRepository.findOne({
       where: { id },
       relations: ['user', 'vehicle'],
     });
 
-    if (!reservation) throw new NotFoundException('Reservation not found');
+    if (!reservation) {
+      this.loggerService.warn(`Reservation with ID ${id} not found`);
+      throw new NotFoundException('Reservation not found');
+    }
 
+    this.loggerService.log(`Reservation found: ${JSON.stringify(reservation)}`);
     return reservation;
   }
 
@@ -100,12 +135,16 @@ export class ReservationsService {
     id: number,
     updateReservationDto: UpdateReservationDto,
   ): Promise<Reservation> {
-    const reservation = await this.findOne(id);
+    this.loggerService.log(
+      `Updating reservation ID ${id} with data: ${JSON.stringify(updateReservationDto)}`,
+    );
 
+    const reservation = await this.findOne(id);
     const { rentalDate, returnDate, vehicleId } = updateReservationDto;
 
     if (rentalDate && returnDate) {
       if (dayjs(rentalDate).isAfter(returnDate)) {
+        this.loggerService.warn('Invalid rental period');
         throw new BadRequestException(
           'Rental date must be before or the same as return date',
         );
@@ -119,6 +158,9 @@ export class ReservationsService {
       });
 
       if (conflictingReservation && conflictingReservation.id !== id) {
+        this.loggerService.warn(
+          `Conflict: Vehicle ${vehicleId} is already reserved from ${conflictingReservation.rentalDate} to ${conflictingReservation.returnDate}`,
+        );
         throw new BadRequestException(
           `This vehicle is already reserved from ${conflictingReservation.rentalDate} to ${conflictingReservation.returnDate}`,
         );
@@ -130,15 +172,24 @@ export class ReservationsService {
     }
 
     Object.assign(reservation, updateReservationDto);
-    return this.reservationRepository.save(reservation);
+    const updatedReservation =
+      await this.reservationRepository.save(reservation);
+
+    this.loggerService.log(`Reservation ID ${id} updated successfully`);
+    return updatedReservation;
   }
 
   async delete(id: number): Promise<void> {
+    this.loggerService.warn(`Deleting reservation with ID: ${id}`);
+
     const reservation = await this.findOne(id);
     await this.reservationRepository.remove(reservation);
+
+    this.loggerService.warn(`Reservation with ID ${id} deleted`);
   }
 
   async findExpiredReservations(): Promise<Reservation[]> {
+    this.loggerService.log('Fetching expired reservations');
     return this.reservationRepository.find({
       where: {
         returnDate: LessThanOrEqual(new Date().toISOString().split('T')[0]),
@@ -149,6 +200,9 @@ export class ReservationsService {
 
   async markAsExpired(ids: number[]): Promise<void> {
     if (ids.length > 0) {
+      this.loggerService.log(
+        `Marking reservations as expired: ${ids.join(', ')}`,
+      );
       await this.reservationRepository.update(ids, {
         status: ReservationStatus.OVERDUE,
       });
