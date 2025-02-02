@@ -17,11 +17,13 @@ import azureConfig from './config/azure.config';
 import stripeConfig from './config/stripe.config';
 import { StripeModule } from './payments/stripe.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { LoggerModule } from './logger/logger.module';
 
 const ENV = process.env.NODE_ENV;
 
 @Module({
   imports: [
+    LoggerModule,
     AzureStorageModule,
     VehiclesModule,
     AuthModule,

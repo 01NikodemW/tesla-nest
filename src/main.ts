@@ -1,9 +1,14 @@
-import { ValidationPipe, ClassSerializerInterceptor } from '@nestjs/common';
+import {
+  ValidationPipe,
+  ClassSerializerInterceptor,
+  Logger,
+} from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
+  const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
 
   // ✅ Enable CORS (for frontend API access)
@@ -50,5 +55,7 @@ async function bootstrap() {
 
   // ✅ Start the server
   await app.listen(3000);
+
+  logger.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();
