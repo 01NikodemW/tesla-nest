@@ -11,6 +11,8 @@ import { UpdateReservationDto } from './dto/update-reservation.dto';
 import { Vehicle } from '../vehicles/entities/vehicle.entity';
 import { User } from '../users/entities/user.entity';
 import * as dayjs from 'dayjs';
+import { PaginationDto } from 'src/common/pagination/pagination.dto';
+import { PaginationService } from 'src/common/pagination/pagination.service';
 
 @Injectable()
 export class ReservationsService {
@@ -21,6 +23,7 @@ export class ReservationsService {
     private readonly vehicleRepository: Repository<Vehicle>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly paginationService: PaginationService,
   ) {}
 
   async create(
@@ -69,8 +72,17 @@ export class ReservationsService {
     return this.reservationRepository.save(reservation);
   }
 
-  async findAll(): Promise<Reservation[]> {
-    return this.reservationRepository.find({ relations: ['user', 'vehicle'] });
+  async findAll(paginationDto: PaginationDto) {
+    const queryBuilder = this.reservationRepository
+      .createQueryBuilder('reservation')
+      .leftJoinAndSelect('reservation.user', 'user')
+      .leftJoinAndSelect('reservation.vehicle', 'vehicle');
+
+    return this.paginationService.paginate(
+      queryBuilder,
+      paginationDto,
+      'reservation',
+    );
   }
 
   async findOne(id: number): Promise<Reservation> {

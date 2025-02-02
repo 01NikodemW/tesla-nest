@@ -9,6 +9,7 @@ import {
   UploadedFile,
   UseGuards,
   UseInterceptors,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -23,6 +24,7 @@ import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { Vehicle } from './entities/vehicle.entity';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { PaginationDto } from 'src/common/pagination/pagination.dto';
 
 @ApiTags('Vehicles')
 @Controller('vehicles')
@@ -47,8 +49,8 @@ export class VehiclesController {
     description: 'List of vehicles retrieved.',
     type: [Vehicle],
   })
-  async findAll() {
-    return this.vehiclesService.findAll();
+  async findAll(@Query() paginationDto: PaginationDto) {
+    return this.vehiclesService.findAll(paginationDto);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -6,6 +6,8 @@ import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { VehicleImage } from './entities/vehicle-image.entity';
 import { AzureStorageService } from '../azure-storage/azure-storage.service';
+import { PaginationService } from 'src/common/pagination/pagination.service';
+import { PaginationDto } from 'src/common/pagination/pagination.dto';
 
 @Injectable()
 export class VehiclesService {
@@ -15,6 +17,7 @@ export class VehiclesService {
     @InjectRepository(VehicleImage)
     private readonly vehicleImageRepository: Repository<VehicleImage>,
     private readonly azureStorageService: AzureStorageService,
+    private readonly paginationService: PaginationService,
   ) {}
 
   async create(createVehicleDto: CreateVehicleDto): Promise<Vehicle> {
@@ -22,8 +25,16 @@ export class VehiclesService {
     return this.vehicleRepository.save(vehicle);
   }
 
-  async findAll(): Promise<Vehicle[]> {
-    return this.vehicleRepository.find({ relations: ['images'] });
+  async findAll(paginationDto: PaginationDto) {
+    const queryBuilder = this.vehicleRepository
+      .createQueryBuilder('vehicle')
+      .leftJoinAndSelect('vehicle.images', 'images');
+
+    return this.paginationService.paginate(
+      queryBuilder,
+      paginationDto,
+      'vehicle',
+    );
   }
 
   async findOne(id: number): Promise<Vehicle> {
