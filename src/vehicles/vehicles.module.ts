@@ -1,12 +1,19 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { VehiclesService } from './vehicles.service';
 import { VehiclesController } from './vehicles.controller';
 import { Vehicle } from './entities/vehicle.entity';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { VehicleImage } from './entities/vehicle-image.entity';
+import { AzureStorageModule } from '../azure-storage/azure-storage.module';
+import { PaginationModule } from 'src/common/pagination/pagination.module';
 
 @Module({
+  imports: [
+    TypeOrmModule.forFeature([Vehicle, VehicleImage]),
+    AzureStorageModule,
+    PaginationModule,
+  ],
   controllers: [VehiclesController],
   providers: [VehiclesService],
-  imports: [TypeOrmModule.forFeature([Vehicle])],
 })
 export class VehiclesModule {}

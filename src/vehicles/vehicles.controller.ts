@@ -1,19 +1,30 @@
 import {
-  Body,
   Controller,
-  Delete,
   Get,
   Param,
-  Patch,
   Post,
+  Patch,
+  Delete,
+  Body,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
+  Query,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiConsumes,
+  ApiBody,
+} from '@nestjs/swagger';
 import { VehiclesService } from './vehicles.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { Vehicle } from './entities/vehicle.entity';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { PaginationDto } from 'src/common/pagination/pagination.dto';
 
 @ApiTags('Vehicles')
 @Controller('vehicles')
@@ -32,19 +43,19 @@ export class VehiclesController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Retrieve all vehicles' })
+  @ApiOperation({ summary: 'Retrieve all vehicles with images' })
   @ApiResponse({
     status: 200,
     description: 'List of vehicles retrieved.',
     type: [Vehicle],
   })
-  async findAll() {
-    return this.vehiclesService.findAll();
+  async findAll(@Query() paginationDto: PaginationDto) {
+    return this.vehiclesService.findAll(paginationDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
-  @ApiOperation({ summary: 'Retrieve a vehicle by ID' })
+  @ApiOperation({ summary: 'Retrieve a vehicle by ID with its images' })
   @ApiResponse({
     status: 200,
     description: 'Vehicle retrieved successfully.',
@@ -76,6 +87,29 @@ export class VehiclesController {
     description: 'Vehicle removed successfully.',
   })
   async remove(@Param('id') id: number) {
-    return this.vehiclesService.remove(id);
+    return this.vehiclesService.delete(id);
+  }
+
+  @Post(':id/upload-image')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data') // ✅ Specify form-data content type
+  @ApiOperation({ summary: 'Upload an image for a vehicle' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary', // ✅ Needed to show file upload field in Swagger
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 201, description: 'Image uploaded successfully.' })
+  async uploadImage(
+    @Param('id') id: number,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.vehiclesService.uploadImage(id, file);
   }
 }

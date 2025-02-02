@@ -12,11 +12,14 @@ import databaseConfig from './config/database.config';
 import enviromentValidation from './config/enviroment.validation';
 import jwtConfig from './config/jwt.config';
 import { ReservationsModule } from './reservations/reservations.module';
+import { AzureStorageModule } from './azure-storage/azure-storage.module';
+import azureConfig from './config/azure.config';
 
 const ENV = process.env.NODE_ENV;
 
 @Module({
   imports: [
+    AzureStorageModule,
     VehiclesModule,
     AuthModule,
     ReservationsModule,
@@ -25,7 +28,7 @@ const ENV = process.env.NODE_ENV;
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: !ENV ? '.env' : `.env.${ENV}`,
-      load: [databaseConfig, jwtConfig],
+      load: [databaseConfig, jwtConfig, azureConfig],
       validationSchema: enviromentValidation,
     }),
     TypeOrmModule.forRootAsync({
