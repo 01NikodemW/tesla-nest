@@ -6,7 +6,6 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Use global validation pipes
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -18,7 +17,6 @@ async function bootstrap() {
     }),
   );
 
-  // Swagger configuration
   const config = new DocumentBuilder()
     .setTitle('NestJs Masterclass - Blog app API')
     .setDescription('Use the base API URL as http://localhost:3000')
@@ -35,7 +33,7 @@ async function bootstrap() {
         scheme: 'bearer',
         bearerFormat: 'JWT',
       },
-      'access-token', // Reference name for the Bearer token
+      'access-token',
     )
     .build();
 

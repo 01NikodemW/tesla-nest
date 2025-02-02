@@ -11,6 +11,7 @@ import { AppService } from './app.service';
 import databaseConfig from './config/database.config';
 import enviromentValidation from './config/enviroment.validation';
 import jwtConfig from './config/jwt.config';
+import { ReservationsModule } from './reservations/reservations.module';
 
 const ENV = process.env.NODE_ENV;
 
@@ -18,6 +19,7 @@ const ENV = process.env.NODE_ENV;
   imports: [
     VehiclesModule,
     AuthModule,
+    ReservationsModule,
     UsersModule,
     SeedModule,
     ConfigModule.forRoot({
