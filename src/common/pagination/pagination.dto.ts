@@ -25,14 +25,14 @@ export class PaginationDto {
   @Min(1)
   limit?: number = 10;
 
-  @ApiPropertyOptional({ description: 'Column to sort by', example: 'year' })
+  @ApiPropertyOptional({ description: 'Column to sort by', example: 'id' })
   @IsOptional()
   @IsString()
   sortBy?: string;
 
   @ApiPropertyOptional({
     description: 'Sorting order (ASC/DESC)',
-    example: 'DESC',
+    example: SortOrder.ASC,
   })
   @IsOptional()
   @IsEnum(SortOrder)
