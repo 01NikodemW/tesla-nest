@@ -2,8 +2,10 @@ import { Controller, Post, Body, Request, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 
-@ApiTags('Auth') // Group endpoints under the "Auth" section in Swagger
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -16,15 +18,7 @@ export class AuthController {
     description: 'Login successful. Returns a JWT token.',
   })
   @ApiResponse({ status: 401, description: 'Invalid credentials.' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        email: { type: 'string', example: 'email@gmail.com' },
-        password: { type: 'string', example: '@Haslo123' },
-      },
-    },
-  })
+  @ApiBody({ type: LoginDto })
   async login(@Request() req) {
     return this.authService.login(req.user);
   }
@@ -33,16 +27,8 @@ export class AuthController {
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({ status: 201, description: 'User registered successfully.' })
   @ApiResponse({ status: 409, description: 'User already exists.' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        email: { type: 'string', example: 'email@gmail.com' },
-        password: { type: 'string', example: '@Haslo123' },
-      },
-    },
-  })
-  async register(@Body() body: { email: string; password: string }) {
-    return this.authService.register(body.email, body.password);
+  @ApiBody({ type: RegisterDto })
+  async register(@Body() registerDto: RegisterDto) {
+    return this.authService.register(registerDto.email, registerDto.password);
   }
 }
