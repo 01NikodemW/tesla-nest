@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 export class User {
@@ -10,6 +11,7 @@ export class User {
   email: string;
 
   @Column()
+  @Exclude()
   password: string;
 
   @BeforeInsert()
