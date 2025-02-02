@@ -1,18 +1,18 @@
-import { IsString, IsInt, Min, Max } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateVehicleDto {
-  @IsString()
+  @ApiProperty({ description: 'Make of the vehicle', example: 'Toyota' })
   make: string;
 
-  @IsString()
+  @ApiProperty({ description: 'Model of the vehicle', example: 'Corolla' })
   model: string;
 
-  @IsInt()
-  @Min(1886)
-  @Max(new Date().getFullYear())
+  @ApiProperty({ description: 'Year of manufacture', example: 2022 })
   year: number;
 
-  @IsInt()
-  @Min(0)
+  @ApiProperty({
+    description: 'Rental price per day in USD',
+    example: 50,
+  })
   rentalPricePerDay: number;
 }

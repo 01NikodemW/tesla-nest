@@ -18,4 +18,4 @@ Content-Type: application/json
 
 ### Get user profile (Protected Route - Replace {{token}} with actual token)
 GET http://localhost:3000/vehicles/2
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJzdWIiOjEsImlhdCI6MTczODQ1NTAwMCwiZXhwIjoxNzM4NDU4NjAwfQ.JR8k8BA2QPPYci2xq7dtG7Da8zjObV9_VTxImDw2a7c
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJzdWIiOjEsImlhdCI6MTczODQ1NTYxMiwiZXhwIjoxNzM4NDU5MjEyfQ.aQCjzbyxAkDyHkY5XPxA_rCR5pXDSIKvuqMZUBpwDiI
