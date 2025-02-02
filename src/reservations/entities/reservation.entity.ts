@@ -3,6 +3,12 @@ import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
 import { Vehicle } from '../../vehicles/entities/vehicle.entity';
 
+export enum ReservationStatus {
+  IN_PROGRESS = 'IN_PROGRESS', // Car is currently rented
+  COMPLETED = 'COMPLETED', // Car returned successfully
+  OVERDUE = 'OVERDUE', // Car not returned on time
+}
+
 @Entity()
 export class Reservation {
   @PrimaryGeneratedColumn()
@@ -31,7 +37,19 @@ export class Reservation {
   @Column()
   @ApiProperty({
     description: 'Total price of the reservation',
-    example: 250,
+    example: 250.0,
   })
   totalPrice: number;
+
+  @Column({
+    type: 'enum',
+    enum: ReservationStatus,
+    default: ReservationStatus.IN_PROGRESS,
+  })
+  @ApiProperty({
+    description: 'Current reservation status',
+    example: ReservationStatus.IN_PROGRESS,
+    enum: ReservationStatus,
+  })
+  status: ReservationStatus;
 }

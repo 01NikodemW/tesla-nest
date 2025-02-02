@@ -6,6 +6,7 @@ import { Reservation } from './entities/reservation.entity';
 import { Vehicle } from '../vehicles/entities/vehicle.entity';
 import { User } from '../users/entities/user.entity';
 import { PaginationModule } from 'src/common/pagination/pagination.module';
+import { ReservationCronService } from './reservation-cron.service';
 
 @Module({
   imports: [
@@ -13,6 +14,6 @@ import { PaginationModule } from 'src/common/pagination/pagination.module';
     PaginationModule,
   ],
   controllers: [ReservationsController],
-  providers: [ReservationsService],
+  providers: [ReservationsService, ReservationCronService],
 })
 export class ReservationsModule {}
