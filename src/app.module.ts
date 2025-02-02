@@ -14,6 +14,8 @@ import jwtConfig from './config/jwt.config';
 import { ReservationsModule } from './reservations/reservations.module';
 import { AzureStorageModule } from './azure-storage/azure-storage.module';
 import azureConfig from './config/azure.config';
+import stripeConfig from './config/stripe.config';
+import { StripeModule } from './payments/stripe.module';
 
 const ENV = process.env.NODE_ENV;
 
@@ -25,10 +27,11 @@ const ENV = process.env.NODE_ENV;
     ReservationsModule,
     UsersModule,
     SeedModule,
+    StripeModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: !ENV ? '.env' : `.env.${ENV}`,
-      load: [databaseConfig, jwtConfig, azureConfig],
+      load: [databaseConfig, jwtConfig, azureConfig, stripeConfig],
       validationSchema: enviromentValidation,
     }),
     TypeOrmModule.forRootAsync({
