@@ -1,21 +1,28 @@
 import {
-  Body,
   Controller,
-  Delete,
   Get,
   Param,
-  Patch,
   Post,
+  Patch,
+  Delete,
+  Body,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiConsumes,
+  ApiBody,
+} from '@nestjs/swagger';
 import { VehiclesService } from './vehicles.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { Vehicle } from './entities/vehicle.entity';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { CreateVehicleImageDto } from './dto/create-vehicle-image.dto';
-import { VehicleImage } from './entities/vehicle-image.entity';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Vehicles')
 @Controller('vehicles')
@@ -81,24 +88,26 @@ export class VehiclesController {
     return this.vehiclesService.delete(id);
   }
 
-  @Post('images')
-  @ApiOperation({ summary: 'Add an image to a vehicle' })
-  @ApiResponse({
-    status: 201,
-    description: 'Image added successfully.',
-    type: VehicleImage,
+  @Post(':id/upload-image')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data') // ✅ Specify form-data content type
+  @ApiOperation({ summary: 'Upload an image for a vehicle' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary', // ✅ Needed to show file upload field in Swagger
+        },
+      },
+    },
   })
-  async addImage(@Body() createVehicleImageDto: CreateVehicleImageDto) {
-    return this.vehiclesService.addImage(createVehicleImageDto);
-  }
-
-  @Delete('images/:id')
-  @ApiOperation({ summary: 'Remove an image from a vehicle' })
-  @ApiResponse({
-    status: 200,
-    description: 'Image removed successfully.',
-  })
-  async removeImage(@Param('id') id: number) {
-    return this.vehiclesService.removeImage(id);
+  @ApiResponse({ status: 201, description: 'Image uploaded successfully.' })
+  async uploadImage(
+    @Param('id') id: number,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.vehiclesService.uploadImage(id, file);
   }
 }

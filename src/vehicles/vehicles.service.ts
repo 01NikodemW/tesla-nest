@@ -5,7 +5,7 @@ import { Vehicle } from './entities/vehicle.entity';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { VehicleImage } from './entities/vehicle-image.entity';
-import { CreateVehicleImageDto } from './dto/create-vehicle-image.dto';
+import { AzureStorageService } from '../azure-storage/azure-storage.service';
 
 @Injectable()
 export class VehiclesService {
@@ -14,6 +14,7 @@ export class VehiclesService {
     private readonly vehicleRepository: Repository<Vehicle>,
     @InjectRepository(VehicleImage)
     private readonly vehicleImageRepository: Repository<VehicleImage>,
+    private readonly azureStorageService: AzureStorageService,
   ) {}
 
   async create(createVehicleDto: CreateVehicleDto): Promise<Vehicle> {
@@ -49,23 +50,19 @@ export class VehiclesService {
     await this.vehicleRepository.remove(vehicle);
   }
 
-  async addImage(
-    createVehicleImageDto: CreateVehicleImageDto,
+  async uploadImage(
+    vehicleId: number,
+    file: Express.Multer.File,
   ): Promise<VehicleImage> {
-    const vehicle = await this.findOne(createVehicleImageDto.vehicleId);
+    const vehicle = await this.findOne(vehicleId);
+    if (!vehicle) throw new NotFoundException('Vehicle not found');
+
+    const imageUrl = await this.azureStorageService.uploadFile(file);
     const vehicleImage = this.vehicleImageRepository.create({
       vehicle,
-      imageUrl: createVehicleImageDto.imageUrl,
+      imageUrl,
     });
 
     return this.vehicleImageRepository.save(vehicleImage);
-  }
-
-  async removeImage(imageId: number): Promise<void> {
-    const image = await this.vehicleImageRepository.findOne({
-      where: { id: imageId },
-    });
-    if (!image) throw new NotFoundException('Image not found');
-    await this.vehicleImageRepository.remove(image);
   }
 }
