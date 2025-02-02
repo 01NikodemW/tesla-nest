@@ -16,6 +16,7 @@ import { AzureStorageModule } from './azure-storage/azure-storage.module';
 import azureConfig from './config/azure.config';
 import stripeConfig from './config/stripe.config';
 import { StripeModule } from './payments/stripe.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 const ENV = process.env.NODE_ENV;
 
@@ -28,6 +29,7 @@ const ENV = process.env.NODE_ENV;
     UsersModule,
     SeedModule,
     StripeModule,
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: !ENV ? '.env' : `.env.${ENV}`,

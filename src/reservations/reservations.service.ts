@@ -4,8 +4,8 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
-import { Reservation } from './entities/reservation.entity';
+import { Repository, Between, LessThanOrEqual } from 'typeorm';
+import { Reservation, ReservationStatus } from './entities/reservation.entity';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { UpdateReservationDto } from './dto/update-reservation.dto';
 import { Vehicle } from '../vehicles/entities/vehicle.entity';
@@ -136,5 +136,22 @@ export class ReservationsService {
   async delete(id: number): Promise<void> {
     const reservation = await this.findOne(id);
     await this.reservationRepository.remove(reservation);
+  }
+
+  async findExpiredReservations(): Promise<Reservation[]> {
+    return this.reservationRepository.find({
+      where: {
+        returnDate: LessThanOrEqual(new Date().toISOString().split('T')[0]),
+        status: ReservationStatus.IN_PROGRESS,
+      },
+    });
+  }
+
+  async markAsExpired(ids: number[]): Promise<void> {
+    if (ids.length > 0) {
+      await this.reservationRepository.update(ids, {
+        status: ReservationStatus.OVERDUE,
+      });
+    }
   }
 }
