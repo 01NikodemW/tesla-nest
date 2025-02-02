@@ -6,10 +6,12 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { VehiclesService } from './vehicles.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('vehicles')
 export class VehiclesController {
@@ -28,6 +30,7 @@ export class VehiclesController {
   }
 
   // Retrieve a single vehicle by ID
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   async findOne(@Param('id') id: number) {
     return this.vehiclesService.findOne(id); // Remove the `+` to avoid coercion if `id` is a string
