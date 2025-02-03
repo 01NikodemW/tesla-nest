@@ -25,9 +25,13 @@ import { Vehicle } from './entities/vehicle.entity';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { PaginationDto } from 'src/common/pagination/pagination.dto';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RoleEnum } from '../auth/enum/role.enum';
 
 @ApiTags('Vehicles')
 @Controller('vehicles')
+@UseGuards(RolesGuard)
 export class VehiclesController {
   constructor(private readonly vehiclesService: VehiclesService) {}
 
@@ -49,6 +53,7 @@ export class VehiclesController {
     description: 'List of vehicles retrieved.',
     type: [Vehicle],
   })
+  @Roles(RoleEnum.USER)
   async findAll(@Query() paginationDto: PaginationDto) {
     return this.vehiclesService.findAll(paginationDto);
   }
