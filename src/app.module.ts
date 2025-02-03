@@ -18,6 +18,8 @@ import stripeConfig from './config/stripe.config';
 import { StripeModule } from './payments/stripe.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { LoggerModule } from './logger/logger.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 const ENV = process.env.NODE_ENV;
 
@@ -38,6 +40,12 @@ const ENV = process.env.NODE_ENV;
       load: [databaseConfig, jwtConfig, azureConfig, stripeConfig],
       validationSchema: enviromentValidation,
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 10000,
+        limit: 50,
+      },
+    ]),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -54,6 +62,12 @@ const ENV = process.env.NODE_ENV;
     }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}
