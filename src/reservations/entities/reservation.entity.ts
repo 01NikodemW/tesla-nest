@@ -12,7 +12,7 @@ export enum ReservationStatus {
 
 @Entity()
 export class Reservation extends BaseEntity {
-  @ManyToOne(() => User, (user) => user.id)
+  @ManyToOne(() => User, (user) => user.id, { onDelete: 'CASCADE' })
   @ApiProperty({ description: 'User who made the reservation', example: 1 })
   user: User;
 

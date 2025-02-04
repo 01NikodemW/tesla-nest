@@ -3,10 +3,10 @@ import * as bcrypt from 'bcrypt';
 import { Exclude } from 'class-transformer';
 import { RoleEnum } from 'src/auth/enum/role.enum';
 import { ApiProperty } from '@nestjs/swagger';
-import { BaseEntity } from 'src/common/entities/base.entity';
+import { BaseEntitySoftDelete } from 'src/common/entities/base-entity-soft-delete';
 
 @Entity()
-export class User extends BaseEntity {
+export class User extends BaseEntitySoftDelete {
   @Column({ unique: true })
   @ApiProperty({
     description: 'Email address of the user',
