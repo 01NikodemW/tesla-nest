@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { SelectQueryBuilder, DataSource } from 'typeorm';
 import { PaginationDto, SortOrder } from './pagination.dto';
+import { PaginatedResponse } from './pagination-response.dto';
 
 @Injectable()
 export class PaginationService {
@@ -10,7 +11,7 @@ export class PaginationService {
     queryBuilder: SelectQueryBuilder<T>,
     paginationDto: PaginationDto,
     alias: string,
-  ): Promise<{ data: T[]; total: number; page: number; limit: number }> {
+  ): Promise<PaginatedResponse<T>> {
     const { page, limit, sortBy, order } = paginationDto;
     const offset = (page - 1) * limit;
 
@@ -39,11 +40,6 @@ export class PaginationService {
       .take(limit)
       .getManyAndCount();
 
-    return {
-      data,
-      total,
-      page,
-      limit,
-    };
+    return new PaginatedResponse<T>(data, total, page, limit);
   }
 }

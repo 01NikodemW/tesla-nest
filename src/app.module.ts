@@ -21,6 +21,7 @@ import { LoggerModule } from './logger/logger.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { AdminModule } from './admin/admin.module';
+import { CqrsModule } from '@nestjs/cqrs';
 
 const ENV = process.env.NODE_ENV;
 

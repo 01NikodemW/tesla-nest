@@ -28,22 +28,21 @@ import { PaginationDto } from 'src/common/pagination/pagination.dto';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RoleEnum } from '../auth/enum/role.enum';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { CreateVehicleCommand } from './commands/create-vehicle/create-vehicle.command';
+import { GetVehicleByIdQuery } from './queries/get-vehicle-by-id/get-vehicle-by-id.query';
+import { DeleteVehicleCommand } from './commands/delete-vehicle/delete-vehicle.command';
+import { UpdateVehicleCommand } from './commands/update-vehicle/update-vehicle.command';
+import { UploadVehicleImageCommand } from './commands/upload-vehicle-image/upload-vehicle-image.command';
+import { GetVehiclesQuery } from './queries/get-vehicles/get-vehicles.query';
 
 @ApiTags('Vehicles')
 @Controller('vehicles')
 export class VehiclesController {
-  constructor(private readonly vehiclesService: VehiclesService) {}
-
-  @Post()
-  @ApiOperation({ summary: 'Create a new vehicle' })
-  @ApiResponse({
-    status: 201,
-    description: 'Vehicle created successfully.',
-    type: Vehicle,
-  })
-  async create(@Body() createVehicleDto: CreateVehicleDto) {
-    return this.vehiclesService.create(createVehicleDto);
-  }
+  constructor(
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Retrieve all vehicles with images' })
@@ -53,7 +52,7 @@ export class VehiclesController {
     type: [Vehicle],
   })
   async findAll(@Query() paginationDto: PaginationDto) {
-    return this.vehiclesService.findAll(paginationDto);
+    return this.queryBus.execute(new GetVehiclesQuery(paginationDto));
   }
 
   @UseGuards(JwtAuthGuard)
@@ -66,7 +65,18 @@ export class VehiclesController {
   })
   @ApiResponse({ status: 404, description: 'Vehicle not found.' })
   async findOne(@Param('id') id: number) {
-    return this.vehiclesService.findOne(id);
+    return this.queryBus.execute(new GetVehicleByIdQuery(id));
+  }
+
+  @Post()
+  @ApiOperation({ summary: 'Create a new vehicle' })
+  @ApiResponse({
+    status: 201,
+    description: 'Vehicle created successfully.',
+    type: Vehicle,
+  })
+  async create(@Body() createVehicleDto: CreateVehicleDto) {
+    return this.commandBus.execute(new CreateVehicleCommand(createVehicleDto));
   }
 
   @Patch(':id')
@@ -80,7 +90,9 @@ export class VehiclesController {
     @Param('id') id: number,
     @Body() updateVehicleDto: UpdateVehicleDto,
   ) {
-    return this.vehiclesService.update(id, updateVehicleDto);
+    return this.commandBus.execute(
+      new UpdateVehicleCommand(id, updateVehicleDto),
+    );
   }
 
   @Delete(':id')
@@ -90,7 +102,7 @@ export class VehiclesController {
     description: 'Vehicle removed successfully.',
   })
   async remove(@Param('id') id: number) {
-    return this.vehiclesService.delete(id);
+    return this.commandBus.execute(new DeleteVehicleCommand(id));
   }
 
   @Post(':id/upload-image')
@@ -113,6 +125,6 @@ export class VehiclesController {
     @Param('id') id: number,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    return this.vehiclesService.uploadImage(id, file);
+    return this.commandBus.execute(new UploadVehicleImageCommand(id, file));
   }
 }

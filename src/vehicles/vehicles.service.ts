@@ -9,6 +9,7 @@ import { AzureStorageService } from '../azure-storage/azure-storage.service';
 import { PaginationService } from 'src/common/pagination/pagination.service';
 import { PaginationDto } from 'src/common/pagination/pagination.dto';
 import { LoggerService } from 'src/logger/logger.service';
+import { PaginatedResponse } from 'src/common/pagination/pagination-response.dto';
 
 @Injectable()
 export class VehiclesService {
@@ -34,7 +35,9 @@ export class VehiclesService {
     return savedVehicle;
   }
 
-  async findAll(paginationDto: PaginationDto) {
+  async findAll(
+    paginationDto: PaginationDto,
+  ): Promise<PaginatedResponse<Vehicle>> {
     this.loggerService.log(
       `Fetching all vehicles with pagination: ${JSON.stringify(paginationDto)}`,
     );
