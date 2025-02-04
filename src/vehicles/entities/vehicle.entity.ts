@@ -1,13 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, Column, OneToMany } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { VehicleImage } from './vehicle-image.entity';
+import { BaseEntity } from 'src/common/entities/base.entity';
 
 @Entity()
-export class Vehicle {
-  @PrimaryGeneratedColumn()
-  @ApiProperty({ description: 'Unique identifier for the vehicle', example: 1 })
-  id: number;
-
+export class Vehicle extends BaseEntity {
   @Column()
   @ApiProperty({ description: 'Make of the vehicle', example: 'Toyota' })
   make: string;

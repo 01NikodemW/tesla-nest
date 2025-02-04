@@ -1,7 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
 import { Vehicle } from '../../vehicles/entities/vehicle.entity';
+import { BaseEntity } from 'src/common/entities/base.entity';
 
 export enum ReservationStatus {
   IN_PROGRESS = 'IN_PROGRESS', // Car is currently rented
@@ -10,14 +11,7 @@ export enum ReservationStatus {
 }
 
 @Entity()
-export class Reservation {
-  @PrimaryGeneratedColumn()
-  @ApiProperty({
-    description: 'Unique identifier for the reservation',
-    example: 1,
-  })
-  id: number;
-
+export class Reservation extends BaseEntity {
   @ManyToOne(() => User, (user) => user.id)
   @ApiProperty({ description: 'User who made the reservation', example: 1 })
   user: User;

@@ -1,13 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Vehicle } from './vehicle.entity';
+import { BaseEntity } from 'src/common/entities/base.entity';
 
 @Entity()
-export class VehicleImage {
-  @PrimaryGeneratedColumn()
-  @ApiProperty({ description: 'Unique identifier for the image', example: 1 })
-  id: number;
-
+export class VehicleImage extends BaseEntity {
   @Column()
   @ApiProperty({
     description: 'URL of the vehicle image',
