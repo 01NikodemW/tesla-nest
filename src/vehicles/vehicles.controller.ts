@@ -25,6 +25,9 @@ import { Vehicle } from './entities/vehicle.entity';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { PaginationDto } from 'src/common/pagination/pagination.dto';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RoleEnum } from '../auth/enum/role.enum';
 
 @ApiTags('Vehicles')
 @Controller('vehicles')
