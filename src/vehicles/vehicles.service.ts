@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Vehicle } from './entities/vehicle.entity';
@@ -9,6 +9,8 @@ import { AzureStorageService } from '../azure-storage/azure-storage.service';
 import { PaginationService } from 'src/common/pagination/pagination.service';
 import { PaginationDto } from 'src/common/pagination/pagination.dto';
 import { LoggerService } from 'src/logger/logger.service';
+import { Cache } from 'cache-manager';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @Injectable()
 export class VehiclesService {
@@ -20,6 +22,7 @@ export class VehiclesService {
     private readonly azureStorageService: AzureStorageService,
     private readonly paginationService: PaginationService,
     private readonly loggerService: LoggerService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async create(createVehicleDto: CreateVehicleDto): Promise<Vehicle> {
@@ -35,6 +38,14 @@ export class VehiclesService {
   }
 
   async findAll(paginationDto: PaginationDto) {
+    const cacheKey = `vehicle_${JSON.stringify(paginationDto)}`;
+    const cachedPaginatedVehicles = await this.cacheManager.get(cacheKey);
+
+    if (cachedPaginatedVehicles) {
+      console.log('Returned from cache');
+      return cachedPaginatedVehicles;
+    }
+
     this.loggerService.log(
       `Fetching all vehicles with pagination: ${JSON.stringify(paginationDto)}`,
     );
@@ -48,6 +59,8 @@ export class VehiclesService {
       paginationDto,
       'vehicle',
     );
+
+    await this.cacheManager.set(cacheKey, result);
 
     this.loggerService.log(`Fetched ${result.data.length} vehicles`);
     return result;

@@ -21,6 +21,8 @@ import { LoggerModule } from './logger/logger.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { AdminModule } from './admin/admin.module';
+import * as redisStore from 'cache-manager-redis-store';
+import { CacheModule } from '@nestjs/cache-manager';
 
 const ENV = process.env.NODE_ENV;
 
@@ -41,6 +43,16 @@ const ENV = process.env.NODE_ENV;
       envFilePath: !ENV ? '.env' : `.env.${ENV}`,
       load: [databaseConfig, jwtConfig, azureConfig, stripeConfig],
       validationSchema: enviromentValidation,
+    }),
+    CacheModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        store: redisStore,
+        host: configService.get('redis.host'),
+        port: configService.get('redis.port'),
+        ttl: 60,
+      }),
     }),
     ThrottlerModule.forRoot([
       {
