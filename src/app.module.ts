@@ -20,12 +20,14 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { LoggerModule } from './logger/logger.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { AdminModule } from './admin/admin.module';
 
 const ENV = process.env.NODE_ENV;
 
 @Module({
   imports: [
     LoggerModule,
+    AdminModule,
     AzureStorageModule,
     VehiclesModule,
     AuthModule,

@@ -31,7 +31,6 @@ import { RoleEnum } from '../auth/enum/role.enum';
 
 @ApiTags('Vehicles')
 @Controller('vehicles')
-@UseGuards(RolesGuard)
 export class VehiclesController {
   constructor(private readonly vehiclesService: VehiclesService) {}
 
@@ -53,7 +52,6 @@ export class VehiclesController {
     description: 'List of vehicles retrieved.',
     type: [Vehicle],
   })
-  @Roles(RoleEnum.USER)
   async findAll(@Query() paginationDto: PaginationDto) {
     return this.vehiclesService.findAll(paginationDto);
   }
