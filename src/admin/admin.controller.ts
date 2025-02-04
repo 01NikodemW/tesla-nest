@@ -2,22 +2,12 @@ import {
   Controller,
   Get,
   Param,
-  Post,
-  Patch,
   Delete,
-  Body,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
   Query,
+  HttpCode,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiConsumes,
-  ApiBody,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PaginationDto } from 'src/common/pagination/pagination.dto';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -46,6 +36,7 @@ export class AdminController {
 
   @Delete('users/:id')
   @ApiOperation({ summary: 'Delete a user' })
+  @HttpCode(204)
   @ApiResponse({ status: 204, description: 'User deleted successfully.' })
   @ApiResponse({ status: 404, description: 'User not found.' })
   async delete(@Param('id') id: number) {
