@@ -15,6 +15,7 @@ import * as dayjs from 'dayjs';
 import { PaginationDto } from 'src/common/pagination/pagination.dto';
 import { PaginationService } from 'src/common/pagination/pagination.service';
 import { LoggerService } from 'src/logger/logger.service';
+import { ReservationConflictException } from 'src/exceptions/reservation-conflict.exception';
 
 @Injectable()
 export class ReservationsService {
@@ -70,8 +71,10 @@ export class ReservationsService {
       this.loggerService.warn(
         `Vehicle ${vehicleId} is already reserved from ${existingReservation.rentalDate} to ${existingReservation.returnDate}`,
       );
-      throw new BadRequestException(
-        `This vehicle is already reserved from ${existingReservation.rentalDate} to ${existingReservation.returnDate}`,
+      throw new ReservationConflictException(
+        vehicleId,
+        existingReservation.rentalDate,
+        existingReservation.returnDate,
       );
     }
 
@@ -161,8 +164,10 @@ export class ReservationsService {
         this.loggerService.warn(
           `Conflict: Vehicle ${vehicleId} is already reserved from ${conflictingReservation.rentalDate} to ${conflictingReservation.returnDate}`,
         );
-        throw new BadRequestException(
-          `This vehicle is already reserved from ${conflictingReservation.rentalDate} to ${conflictingReservation.returnDate}`,
+        throw new ReservationConflictException(
+          vehicleId,
+          conflictingReservation.rentalDate,
+          conflictingReservation.returnDate,
         );
       }
 

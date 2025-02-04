@@ -1,15 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert } from 'typeorm';
+import { Entity, Column, BeforeInsert } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Exclude } from 'class-transformer';
 import { RoleEnum } from 'src/auth/enum/role.enum';
 import { ApiProperty } from '@nestjs/swagger';
+import { BaseEntitySoftDelete } from 'src/common/entities/base-entity-soft-delete';
 
 @Entity()
-export class User {
-  @PrimaryGeneratedColumn()
-  @ApiProperty({ description: 'Unique identifier for the user', example: 1 })
-  id: number;
-
+export class User extends BaseEntitySoftDelete {
   @Column({ unique: true })
   @ApiProperty({
     description: 'Email address of the user',
