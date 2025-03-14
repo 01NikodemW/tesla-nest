@@ -1,99 +1,47 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Techniczne podsumowanie projektu
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Architektura i organizacja kodu
+**Monolit z modularną architekturą** – każdy moduł ma swój **kontroler, serwis, DTO i encję**, co zapewnia **separację odpowiedzialności** i **łatwość rozbudowy**.  
+**Zarządzanie konfiguracją** – centralizacja ustawień w `config/*.ts`, z użyciem **`ConfigModule`** i dynamicznej walidacji `.env` za pomocą **`enviroment.validation.ts`**.  
+**Middleware do logowania zdarzeń** – własne middleware (`logger.middleware.ts`), pozwalające na audyt zapytań.  
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Autoryzacja i zarządzanie użytkownikami
+**Autoryzacja JWT** – zabezpieczenie API za pomocą **JWT + Guardy**, z osobnymi strategiami:  
+   - **LocalStrategy** – obsługa logowania po `email` + `password`.  
+   - **JwtStrategy** – walidacja i rozkodowanie tokenów JWT.  
+**RBAC (Role-Based Access Control)** – dekorator **`@Roles()`**, który weryfikuje uprawnienia użytkownika (np. `Admin`, `User`).  
+**Customowe Guardy** – `RolesGuard`, `JwtAuthGuard`, `LocalAuthGuard` działające na **`CanActivate`**.  
+**Moduł użytkowników** – użytkownicy są przechowywani w bazie (`users.entity.ts`), a ich dane są hashowane.  
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+---
 
-## Project setup
+## Integracje z zewnętrznymi usługami
+**Azure Blob Storage** – przechowywanie i pobieranie plików w **chmurze Microsoft Azure** (`azure-storage.service.ts`).  
+**Płatności Stripe** – obsługa płatności przez Stripe (`stripe.service.ts`):  
+   - Tworzenie **PaymentIntent** (`create-payment-intent.dto.ts`).  
+   - Obsługa webhooków (`webhook.controller.ts`).  
+   - **Obsługa wyjątków Stripe** w dedykowanym filtrze (`stripe-exception.filter.ts`).  
 
-```bash
-$ npm install
-```
+---
 
-## Compile and run the project
+## Zarządzanie pojazdami i rezerwacjami
+**Moduł pojazdów** – obsługa dodawania, usuwania i edycji pojazdów (`vehicles.service.ts`).    
+**Moduł rezerwacji** – obsługa cyklu życia rezerwacji (`reservations.service.ts`).  
+**Cron Jobs** – zadania cykliczne w `reservation-cron.service.ts`, np. **czyszczenie starych rezerwacji**.  
 
-```bash
-# development
-$ npm run start
+---
 
-# watch mode
-$ npm run start:dev
+## Obsługa wyjątków i bezpieczeństwo
+**Globalne filtry wyjątków** – np. `reservation-conflict.exception.ts` dla konfliktów rezerwacji.  
+**Soft delete** – encja `base-entity-soft-delete.ts`, implementująca usuwanie logiczne zamiast fizycznego.  
+**Rate Limiting i zabezpieczenia** – możliwość wprowadzenia `ThrottleGuard`, ale nie widać go jeszcze w kodzie.  
 
-# production mode
-$ npm run start:prod
-```
+---
 
-## Run tests
+## Dodatkowe techniczne aspekty
+**Paginacja** – własny serwis paginacji `pagination.service.ts`, oparty na DTO.  
+**Seeder bazy danych** – `seed.service.ts` do wstępnego wypełniania tabel testowymi danymi.  
+**Dynamiczne logowanie do plików** – przechowywanie logów w `logs/YYYY-MM-DD/app.log`.  
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
