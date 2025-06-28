@@ -1794,12 +1794,167 @@ export class CreateVehicleDto {
 }
 
 
+filepath: src/vehicles/dto/update-vehicle.dto.spec.ts
+file content:
+import { validate } from 'class-validator';
+import { plainToInstance } from 'class-transformer';
+import { UpdateVehicleDto } from './update-vehicle.dto';
+
+describe('UpdateVehicleDto', () => {
+  it('should pass validation if no fields are provided', async () => {
+    const dto = {};
+
+    const instance = plainToInstance(UpdateVehicleDto, dto);
+    const errors = await validate(instance);
+
+    expect(errors.length).toBe(0);
+  });
+
+  it('should pass validation with one field', async () => {
+    const dto = { make: 'Tesla' };
+
+    const instance = plainToInstance(UpdateVehicleDto, dto);
+    const errors = await validate(instance);
+
+    expect(errors.length).toBe(0);
+  });
+
+  it('should fail if a field is invalid type', async () => {
+    const dto = { year: 'notANumber' };
+
+    const instance = plainToInstance(UpdateVehicleDto, dto);
+    const errors = await validate(instance);
+
+    expect(errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ property: 'year' }),
+      ])
+    );
+  });
+
+  it('should fail if a field is out of range', async () => {
+    const dto = { year: 1700 };
+
+    const instance = plainToInstance(UpdateVehicleDto, dto);
+    const errors = await validate(instance);
+
+    expect(errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ property: 'year' }),
+      ])
+    );
+  });
+
+  it('should pass validation with all correct fields', async () => {
+    const dto = {
+      make: 'Ford',
+      model: 'Focus',
+      year: 2022,
+      rentalPricePerDay: 60,
+    };
+
+    const instance = plainToInstance(UpdateVehicleDto, dto);
+    const errors = await validate(instance);
+
+    expect(errors.length).toBe(0);
+  });
+});
+
+
 filepath: src/vehicles/dto/update-vehicle.dto.ts
 file content:
 import { PartialType } from '@nestjs/swagger';
 import { CreateVehicleDto } from './create-vehicle.dto';
 
 export class UpdateVehicleDto extends PartialType(CreateVehicleDto) {}
+
+
+filepath: src/vehicles/dto/create-vehicle.dto.spec.ts
+file content:
+import { validate } from 'class-validator';
+import { plainToInstance } from 'class-transformer';
+import { CreateVehicleDto } from './create-vehicle.dto';
+
+describe('CreateVehicleDto', () => {
+  it('should pass validation with correct data', async () => {
+    const dto = {
+      make: 'Toyota',
+      model: 'Corolla',
+      year: 2022,
+      rentalPricePerDay: 100,
+    };
+
+    const instance = plainToInstance(CreateVehicleDto, dto);
+    const errors = await validate(instance);
+
+    expect(errors.length).toBe(0);
+  });
+
+  it('should fail if make is missing', async () => {
+    const dto = {
+      model: 'Corolla',
+      year: 2022,
+      rentalPricePerDay: 100,
+    };
+
+    const instance = plainToInstance(CreateVehicleDto, dto);
+    const errors = await validate(instance);
+
+    expect(errors).toEqual(
+      expect.arrayContaining([expect.objectContaining({ property: 'make' })]),
+    );
+  });
+
+  it('should fail if year is not integer', async () => {
+    const dto = {
+      make: 'Toyota',
+      model: 'Corolla',
+      year: 'abcd', // invalid
+      rentalPricePerDay: 100,
+    };
+
+    const instance = plainToInstance(CreateVehicleDto, dto);
+    const errors = await validate(instance);
+
+    expect(errors).toEqual(
+      expect.arrayContaining([expect.objectContaining({ property: 'year' })]),
+    );
+  });
+
+  it('should fail if year is out of range', async () => {
+    const dto = {
+      make: 'Toyota',
+      model: 'Corolla',
+      year: 1850, // too old
+      rentalPricePerDay: 100,
+    };
+
+    const instance = plainToInstance(CreateVehicleDto, dto);
+    const errors = await validate(instance);
+
+    expect(errors).toEqual(
+      expect.arrayContaining([expect.objectContaining({ property: 'year' })]),
+    );
+  });
+
+  it('should fail if rentalPricePerDay is below minimum', async () => {
+    const dto = {
+      make: 'Toyota',
+      model: 'Corolla',
+      year: 2022,
+      rentalPricePerDay: 0,
+    };
+
+    const instance = plainToInstance(CreateVehicleDto, dto);
+    const errors = await validate(instance);
+
+    expect(errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ property: 'rentalPricePerDay' }),
+      ]),
+    );
+  });
+});
 
 
 filepath: src/vehicles/vehicles.controller.ts
@@ -1984,7 +2139,10 @@ describe('VehiclesService', () => {
       providers: [
         VehiclesService,
         { provide: getRepositoryToken(Vehicle), useValue: mockVehicleRepo },
-        { provide: getRepositoryToken(VehicleImage), useValue: mockVehicleImageRepo },
+        {
+          provide: getRepositoryToken(VehicleImage),
+          useValue: mockVehicleImageRepo,
+        },
         { provide: AzureStorageService, useValue: mockAzureStorageService },
         { provide: PaginationService, useValue: mockPaginationService },
         { provide: LoggerService, useValue: mockLoggerService },
@@ -1994,8 +2152,12 @@ describe('VehiclesService', () => {
     service = module.get<VehiclesService>(VehiclesService);
 
     // Reset mocks for isolation between tests
-    Object.values(mockVehicleRepo).forEach(fn => fn.mockReset && fn.mockReset());
-    Object.values(mockVehicleImageRepo).forEach(fn => fn.mockReset && fn.mockReset());
+    Object.values(mockVehicleRepo).forEach(
+      (fn) => fn.mockReset && fn.mockReset(),
+    );
+    Object.values(mockVehicleImageRepo).forEach(
+      (fn) => fn.mockReset && fn.mockReset(),
+    );
     mockAzureStorageService.uploadFile.mockReset();
     mockPaginationService.paginate.mockReset();
     mockLoggerService.log.mockReset();
@@ -2003,7 +2165,12 @@ describe('VehiclesService', () => {
   });
 
   it('should create a vehicle', async () => {
-    const dto = { make: 'Tesla', model: 'X', year: 2020, rentalPricePerDay: 100 };
+    const dto = {
+      make: 'Tesla',
+      model: 'X',
+      year: 2020,
+      rentalPricePerDay: 100,
+    };
     const entity = { ...dto, id: 1 };
     mockVehicleRepo.create.mockReturnValue(dto);
     mockVehicleRepo.save.mockResolvedValue(entity);
@@ -2020,21 +2187,43 @@ describe('VehiclesService', () => {
 
     const result = await service.findOne(1);
     expect(result).toBe(vehicle);
-    expect(mockVehicleRepo.findOne).toBeCalledWith({ where: { id: 1 }, relations: ['images'] });
+    expect(mockVehicleRepo.findOne).toBeCalledWith({
+      where: { id: 1 },
+      relations: ['images'],
+    });
   });
 
   it('should throw NotFoundException if vehicle not found', async () => {
     mockVehicleRepo.findOne.mockResolvedValue(undefined);
-    await expect(service.findOne(999)).rejects.toThrow('Vehicle with ID 999 not found');
+    await expect(service.findOne(999)).rejects.toThrow(
+      'Vehicle with ID 999 not found',
+    );
   });
 
   it('should update a vehicle', async () => {
-    const vehicle = { id: 1, make: 'Tesla', model: 'X', year: 2020, rentalPricePerDay: 100 };
+    const vehicle = {
+      id: 1,
+      make: 'Tesla',
+      model: 'X',
+      year: 2020,
+      rentalPricePerDay: 100,
+    };
     mockVehicleRepo.findOne.mockResolvedValue(vehicle);
-    mockVehicleRepo.save.mockResolvedValue({ ...vehicle, rentalPricePerDay: 120 });
+    mockVehicleRepo.save.mockResolvedValue({
+      ...vehicle,
+      rentalPricePerDay: 120,
+    });
 
     const result = await service.update(1, { rentalPricePerDay: 120 } as any);
     expect(result.rentalPricePerDay).toBe(120);
+  });
+
+  it('should throw NotFoundException when updating non-existing vehicle', async () => {
+    mockVehicleRepo.findOne.mockResolvedValue(undefined);
+
+    await expect(service.update(999, { make: 'Nowa' } as any)).rejects.toThrow(
+      'Vehicle with ID 999 not found',
+    );
   });
 
   it('should delete a vehicle', async () => {
@@ -2046,17 +2235,94 @@ describe('VehiclesService', () => {
     expect(mockVehicleRepo.remove).toBeCalledWith(vehicle);
   });
 
+  it('should throw NotFoundException when deleting non-existing vehicle', async () => {
+    mockVehicleRepo.findOne.mockResolvedValue(undefined);
+
+    await expect(service.delete(999)).rejects.toThrow(
+      'Vehicle with ID 999 not found',
+    );
+  });
+
   it('should upload image for a vehicle', async () => {
-    const file = { originalname: 'img.jpg', buffer: Buffer.from(''), mimetype: 'image/jpeg' } as any;
+    const file = {
+      originalname: 'img.jpg',
+      buffer: Buffer.from(''),
+      mimetype: 'image/jpeg',
+    } as any;
     const vehicle = { id: 1, images: [] };
     mockVehicleRepo.findOne.mockResolvedValue(vehicle);
     mockAzureStorageService.uploadFile.mockResolvedValue('url.jpg');
     const image = { id: 1, vehicle, imageUrl: 'url.jpg' };
-    mockVehicleImageRepo.create.mockReturnValue({ vehicle, imageUrl: 'url.jpg' });
+    mockVehicleImageRepo.create.mockReturnValue({
+      vehicle,
+      imageUrl: 'url.jpg',
+    });
     mockVehicleImageRepo.save.mockResolvedValue(image);
 
     const result = await service.uploadImage(1, file);
     expect(result).toEqual(image);
+    expect(mockAzureStorageService.uploadFile).toBeCalledWith(file);
+    expect(mockVehicleImageRepo.create).toBeCalledWith({
+      vehicle,
+      imageUrl: 'url.jpg',
+    });
+    expect(mockVehicleImageRepo.save).toBeCalled();
+  });
+
+  it('should throw NotFoundException when uploading image for non-existing vehicle', async () => {
+    mockVehicleRepo.findOne.mockResolvedValue(undefined);
+
+    await expect(service.uploadImage(123, {} as any)).rejects.toThrow(
+      /Vehicle with ID 123 not found/,
+    );
+  });
+
+  it('should fetch all vehicles with pagination', async () => {
+    const paginationDto = { page: 1, limit: 10 } as any;
+    const paginatedResult = {
+      data: [
+        {
+          id: 1,
+          make: 'Tesla',
+          model: 'S',
+          year: 2020,
+          rentalPricePerDay: 100,
+          images: [],
+        },
+      ],
+      total: 1,
+      page: 1,
+      limit: 10,
+    };
+    // Udajemy, że queryBuilder zwraca się poprawnie, a paginate woła paginatedResult
+    mockVehicleRepo.createQueryBuilder.mockReturnValue({
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      take: jest.fn().mockReturnThis(),
+      getManyAndCount: jest
+        .fn()
+        .mockResolvedValue([paginatedResult.data, paginatedResult.total]),
+      orderBy: jest.fn().mockReturnThis(),
+    });
+    mockPaginationService.paginate.mockResolvedValue(paginatedResult);
+
+    const result = await service.findAll(paginationDto);
+    expect(result).toEqual(paginatedResult);
+    expect(mockPaginationService.paginate).toBeCalled();
+  });
+
+  it('should call loggerService.log when creating vehicle', async () => {
+    const dto = {
+      make: 'BMW',
+      model: 'M3',
+      year: 2021,
+      rentalPricePerDay: 200,
+    };
+    mockVehicleRepo.create.mockReturnValue(dto);
+    mockVehicleRepo.save.mockResolvedValue({ ...dto, id: 2 });
+
+    await service.create(dto as any);
+    expect(mockLoggerService.log).toHaveBeenCalled();
   });
 });
 
@@ -2285,6 +2551,99 @@ export class VehicleImage extends BaseEntity {
   @ApiProperty({ description: 'Associated vehicle', type: () => Vehicle }) // ✅ FIX: Lazy resolver
   vehicle: Vehicle;
 }
+
+
+filepath: src/vehicles/vehicles.controller.spec.ts
+file content:
+import { Test, TestingModule } from '@nestjs/testing';
+import { VehiclesController } from './vehicles.controller';
+import { VehiclesService } from './vehicles.service';
+
+const mockVehiclesService = {
+  create: jest.fn(),
+  findAll: jest.fn(),
+  findOne: jest.fn(),
+  update: jest.fn(),
+  delete: jest.fn(),
+  uploadImage: jest.fn(),
+};
+
+describe('VehiclesController', () => {
+  let controller: VehiclesController;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [VehiclesController],
+      providers: [{ provide: VehiclesService, useValue: mockVehiclesService }],
+    }).compile();
+
+    controller = module.get<VehiclesController>(VehiclesController);
+
+    // Resetujemy mocki po każdym teście
+    Object.values(mockVehiclesService).forEach(
+      (fn) => fn.mockReset && fn.mockReset(),
+    );
+  });
+
+  it('should create a vehicle', async () => {
+    const dto = {
+      make: 'Tesla',
+      model: 'Y',
+      year: 2024,
+      rentalPricePerDay: 120,
+    };
+    const vehicle = { ...dto, id: 1 };
+    mockVehiclesService.create.mockResolvedValue(vehicle);
+
+    const result = await controller.create(dto as any);
+    expect(result).toEqual(vehicle);
+    expect(mockVehiclesService.create).toHaveBeenCalledWith(dto);
+  });
+
+  it('should return all vehicles', async () => {
+    const vehicles = [{ id: 1 }, { id: 2 }] as any[];
+    mockVehiclesService.findAll.mockResolvedValue(vehicles);
+
+    const result = await controller.findAll({} as any);
+    expect(result).toEqual(vehicles);
+    expect(mockVehiclesService.findAll).toHaveBeenCalledWith({});
+  });
+
+  it('should return a single vehicle by id', async () => {
+    const vehicle = { id: 1, make: 'Tesla' };
+    mockVehiclesService.findOne.mockResolvedValue(vehicle);
+
+    const result = await controller.findOne(1);
+    expect(result).toEqual(vehicle);
+    expect(mockVehiclesService.findOne).toHaveBeenCalledWith(1);
+  });
+
+  it('should update a vehicle', async () => {
+    const dto = { rentalPricePerDay: 150 };
+    const updated = { id: 1, make: 'Tesla', rentalPricePerDay: 150 };
+    mockVehiclesService.update.mockResolvedValue(updated);
+
+    const result = await controller.update(1, dto as any);
+    expect(result).toEqual(updated);
+    expect(mockVehiclesService.update).toHaveBeenCalledWith(1, dto);
+  });
+
+  it('should delete a vehicle', async () => {
+    mockVehiclesService.delete.mockResolvedValue(undefined);
+    await controller.remove(1);
+    expect(mockVehiclesService.delete).toHaveBeenCalledWith(1);
+  });
+
+  it('should upload image for a vehicle', async () => {
+    const image = { id: 1, vehicle: { id: 1 }, imageUrl: 'url.jpg' };
+    const file = { originalname: 'img.jpg', buffer: Buffer.from('') } as any;
+    mockVehiclesService.uploadImage.mockResolvedValue(image);
+
+    const result = await controller.uploadImage(1, file);
+    expect(result).toEqual(image);
+    expect(mockVehiclesService.uploadImage).toHaveBeenCalledWith(1, file);
+  });
+});
 
 
 filepath: src/app.controller.ts
