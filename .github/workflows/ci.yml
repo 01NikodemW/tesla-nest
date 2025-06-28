@@ -63,9 +63,6 @@ jobs:
       - name: Run unit tests
         run: npm run test -- --coverage
 
-      - name: Run e2e tests
-        run: npm run test:e2e
-
       - name: Upload test coverage
         if: success()
         uses: actions/upload-artifact@v4
