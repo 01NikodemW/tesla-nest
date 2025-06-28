@@ -11,6 +11,8 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
 
+  console.log("DEPLOY " + new Date().toISOString());
+
   // ✅ Enable CORS (for frontend API access)
   app.enableCors();
 
