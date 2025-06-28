@@ -54,13 +54,9 @@ const ENV = process.env.NODE_ENV;
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
+        url: configService.get('database.url'),
         synchronize: configService.get('database.synchronize'),
-        port: configService.get('database.port'),
-        username: configService.get('database.user'),
-        password: configService.get('database.password'),
-        host: configService.get('database.host'),
         autoLoadEntities: configService.get('database.autoLoadEntities'),
-        database: configService.get('database.name'),
       }),
     }),
   ],
@@ -75,8 +71,6 @@ const ENV = process.env.NODE_ENV;
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(LoggerMiddleware)
-      .forRoutes('cats');
+    consumer.apply(LoggerMiddleware).forRoutes('cats');
   }
 }

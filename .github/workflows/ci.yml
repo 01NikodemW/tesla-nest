@@ -13,10 +13,7 @@ jobs:
     env:
       NODE_ENV: test
       DATABASE_HOST: localhost
-      DATABASE_PORT: 5432
-      DATABASE_USER: postgres
-      DATABASE_PASSWORD: postgres
-      DATABASE_NAME: tesla_nest_ci
+      ATABASE_URL: postgres://postgres:postgres@localhost:5432/tesla_nest_ci
       DATABASE_SYNC: 'true'
       DATABASE_AUTOLOAD: 'true'
       JWT_SECRET: test_jwt_secret
