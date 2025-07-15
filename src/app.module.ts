@@ -56,7 +56,9 @@ const ENV = process.env.NODE_ENV;
         type: 'postgres',
         url: configService.get('database.url'),
         synchronize: configService.get('database.synchronize'),
-        autoLoadEntities: configService.get('database.autoLoadEntities'),
+        // Explicitly set autoLoadEntities to false in production!
+        autoLoadEntities: false,
+        entities: [__dirname + '/**/*.entity.js'], // <-- THIS LINE is critical!
       }),
     }),
   ],
